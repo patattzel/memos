@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/pkg/errors"
 	"golang.org/x/net/html"
@@ -55,6 +56,7 @@ func GetHTMLMeta(urlStr string) (*HTMLMeta, error) {
 
 	htmlMeta := extractHTMLMeta(response.Body)
 	enrichSiteMeta(response.Request.URL, htmlMeta)
+	resolveImageURL(response.Request.URL, htmlMeta)
 	return htmlMeta, nil
 }
 
@@ -163,4 +165,32 @@ func enrichSiteMeta(url *url.URL, meta *HTMLMeta) {
 			}
 		}
 	}
+}
+
+// resolveImageURL makes meta.Image absolute using the page URL if it was relative.
+func resolveImageURL(pageURL *url.URL, meta *HTMLMeta) {
+	if pageURL == nil || meta.Image == "" {
+		return
+	}
+
+	imageURL, err := url.Parse(meta.Image)
+	if err != nil {
+		return
+	}
+
+	// Handle protocol-relative URLs: //example.com/image.png
+	if imageURL.Scheme == "" && strings.HasPrefix(meta.Image, "//") {
+		imageURL.Scheme = pageURL.Scheme
+		meta.Image = imageURL.String()
+		return
+	}
+
+	// Already absolute
+	if imageURL.IsAbs() {
+		return
+	}
+
+	// Resolve relative to the page URL
+	resolved := pageURL.ResolveReference(imageURL)
+	meta.Image = resolved.String()
 }

@@ -3,6 +3,7 @@ import { MemoRelation_Type } from "@/types/proto/api/v1/memo_service_pb";
 import { useTranslate } from "@/utils/i18n";
 import MemoContent from "../../MemoContent";
 import { MemoReactionListView } from "../../MemoReactionListView";
+import LinkPreviewCard from "./LinkPreviewCard";
 import { AttachmentList, LocationDisplay, RelationList } from "../../memo-metadata";
 import { useMemoViewContext } from "../MemoViewContext";
 
@@ -39,6 +40,7 @@ const MemoBody: React.FC<Props> = ({ compact, onContentClick, onContentDoubleCli
           compact={memo.pinned ? false : compact} // Always show full content when pinned
           parentPage={parentPage}
         />
+        <LinkPreviewCard content={memo.content} memoName={memo.name} />
         {memo.location && <LocationDisplay mode="view" location={memo.location} />}
         <AttachmentList mode="view" attachments={memo.attachments} />
         <RelationList mode="view" relations={referencedMemos} currentMemoName={memo.name} parentPage={parentPage} />
